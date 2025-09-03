@@ -1,6 +1,7 @@
 package praktikum;
 
 import io.qameta.allure.restassured.AllureRestAssured;
+import io.qameta.allure.Step; // Добавляем импорт аннотации @Step
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -34,6 +35,7 @@ public class BaseApiTest {
         testUsers.clear();
     }
 
+    @Step("Выполнить GET запрос к {endpoint}") // Добавлена аннотация
     protected Response get(String endpoint) {
         return RestAssured.given()
                 .header("Content-type", "application/json")
@@ -41,6 +43,7 @@ public class BaseApiTest {
                 .get(endpoint);
     }
 
+    @Step("Выполнить POST запрос к {endpoint}") // Добавлена аннотация
     protected Response post(String endpoint, Object body) {
         return RestAssured.given()
                 .header("Content-type", "application/json")
@@ -49,6 +52,7 @@ public class BaseApiTest {
                 .post(endpoint);
     }
 
+    @Step("Выполнить POST запрос к {endpoint} с авторизацией") // Добавлена аннотация
     protected Response postWithAuth(String endpoint, Object body, String token) {
         return RestAssured.given()
                 .header("Content-type", "application/json")
@@ -58,6 +62,7 @@ public class BaseApiTest {
                 .post(endpoint);
     }
 
+    @Step("Удалить пользователя с токеном") // Добавлена аннотация
     protected void deleteUser(String token) {
         try {
             RestAssured.given()
@@ -70,10 +75,12 @@ public class BaseApiTest {
         }
     }
 
+    @Step("Сгенерировать уникальный email") // Добавлена аннотация
     protected String generateUniqueEmail() {
         return faker.internet().emailAddress();
     }
 
+    @Step("Зарегистрировать тестового пользователя") // Добавлена аннотация
     protected String registerTestUser(String email, String password, String name) {
         // Создаем объект для сериализации вместо строки JSON
         Map<String, Object> requestBody = new HashMap<>();
@@ -89,10 +96,12 @@ public class BaseApiTest {
     }
 
     // Дополнительные методы для генерации тестовых данных через Faker
+    @Step("Сгенерировать случайное имя") // Добавлена аннотация
     protected String generateRandomName() {
         return faker.name().firstName();
     }
 
+    @Step("Сгенерировать случайный пароль") // Добавлена аннотация
     protected String generateRandomPassword() {
         return faker.internet().password(8, 16, true, true, true);
     }
