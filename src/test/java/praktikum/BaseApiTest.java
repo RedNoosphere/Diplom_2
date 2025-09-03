@@ -1,22 +1,26 @@
 package praktikum;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.After;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import net.datafaker.Faker;
 
 public class BaseApiTest {
 
     protected static final String BASE_URL = "https://stellarburgers.nomoreparties.site/api";
     protected Map<String, String> testUsers = new HashMap<>();
+    protected Faker faker;
 
     @Before
     public void setUp() {
         RestAssured.baseURI = BASE_URL;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        RestAssured.filters(new AllureRestAssured());
+        faker = new Faker();
     }
 
     @After
@@ -67,18 +71,29 @@ public class BaseApiTest {
     }
 
     protected String generateUniqueEmail() {
-        return "testuser_" + UUID.randomUUID().toString().substring(0, 8) + "@yandex.ru";
+        return faker.internet().emailAddress();
     }
 
     protected String registerTestUser(String email, String password, String name) {
-        String requestBody = String.format(
-                "{\"email\": \"%s\", \"password\": \"%s\", \"name\": \"%s\"}",
-                email, password, name
-        );
+        // Создаем объект для сериализации вместо строки JSON
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("email", email);
+        requestBody.put("password", password);
+        requestBody.put("name", name);
 
         Response response = post("/auth/register", requestBody);
-        testUsers.put(email, response.path("accessToken"));
+        String accessToken = response.path("accessToken");
+        testUsers.put(email, accessToken);
 
-        return response.path("accessToken");
+        return accessToken;
+    }
+
+    // Дополнительные методы для генерации тестовых данных через Faker
+    protected String generateRandomName() {
+        return faker.name().firstName();
+    }
+
+    protected String generateRandomPassword() {
+        return faker.internet().password(8, 16, true, true, true);
     }
 }

@@ -108,6 +108,20 @@
             <version>${jackson.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>1.9.0</version> <!-- Версия совместимая с Java 11 -->
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.15</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

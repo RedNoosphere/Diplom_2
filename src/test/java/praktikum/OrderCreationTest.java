@@ -3,10 +3,15 @@ package praktikum;
 import io.qameta.allure.junit4.DisplayName;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Description;
 import io.restassured.response.Response;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.Matchers.*;
+import static org.apache.http.HttpStatus.*;
 
 @Epic("Stellar Burgers API")
 @Feature("Создание заказов")
@@ -20,21 +25,20 @@ public class OrderCreationTest extends BaseApiTest {
 
     @Test
     @DisplayName("Создание заказа с авторизацией и ингредиентами")
+    @Description("Проверка успешного создания заказа авторизованным пользователем с валидными ингредиентами")
     public void testCreateOrderWithAuthAndIngredients() {
         // Создаем пользователя и получаем токен
         String email = generateUniqueEmail();
         String token = registerTestUser(email, "password123", "Test User");
 
         // Создаем заказ с авторизацией и реальными ингредиентами
-        String requestBody = String.format(
-                "{\"ingredients\": [\"%s\", \"%s\", \"%s\"]}",
-                BUN_ID, MEAT_ID, SAUCE_ID
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{BUN_ID, MEAT_ID, SAUCE_ID});
 
         Response response = postWithAuth("/orders", requestBody, token);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", equalTo(true))
                 .body("name", notNullValue())
                 .body("order.number", notNullValue());
@@ -42,16 +46,15 @@ public class OrderCreationTest extends BaseApiTest {
 
     @Test
     @DisplayName("Создание заказа без авторизации")
+    @Description("Проверка создания заказа неавторизованным пользователем с валидными ингредиентами")
     public void testCreateOrderWithoutAuth() {
-        String requestBody = String.format(
-                "{\"ingredients\": [\"%s\", \"%s\", \"%s\"]}",
-                BUN_ID, MEAT_ID, SAUCE_ID
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{BUN_ID, MEAT_ID, SAUCE_ID});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", equalTo(true))
                 .body("name", notNullValue())
                 .body("order.number", notNullValue());
@@ -59,16 +62,15 @@ public class OrderCreationTest extends BaseApiTest {
 
     @Test
     @DisplayName("Создание заказа с ингредиентами")
+    @Description("Проверка создания заказа с валидным набором ингредиентов")
     public void testCreateOrderWithIngredients() {
-        String requestBody = String.format(
-                "{\"ingredients\": [\"%s\", \"%s\", \"%s\"]}",
-                BUN_ID, MEAT_ID, SAUCE_ID
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{BUN_ID, MEAT_ID, SAUCE_ID});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", equalTo(true))
                 .body("name", notNullValue())
                 .body("order.number", notNullValue());
@@ -76,41 +78,44 @@ public class OrderCreationTest extends BaseApiTest {
 
     @Test
     @DisplayName("Создание заказа без ингредиентов")
+    @Description("Проверка обработки ошибки при создании заказа без указания ингредиентов")
     public void testCreateOrderWithoutIngredients() {
-        String requestBody = "{\"ingredients\": []}";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body("success", equalTo(false))
                 .body("message", equalTo("Ingredient ids must be provided"));
     }
 
     @Test
     @DisplayName("Создание заказа с неверным хешем ингредиентов")
+    @Description("Проверка обработки ошибки при создании заказа с невалидными хешами ингредиентов")
     public void testCreateOrderWithInvalidIngredientHash() {
-        String requestBody = "{\"ingredients\": [\"invalid_hash_123\", \"another_invalid\"]}";
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{"invalid_hash_123", "another_invalid"});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(500)
+                .statusCode(SC_INTERNAL_SERVER_ERROR)
                 .body(notNullValue());
     }
 
     @Test
     @DisplayName("Создание заказа только с булкой")
+    @Description("Проверка создания заказа только с булкой без других ингредиентов")
     public void testCreateOrderWithBunOnly() {
-        String requestBody = String.format(
-                "{\"ingredients\": [\"%s\"]}",
-                BUN_ID
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{BUN_ID});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", equalTo(true))
                 .body("name", notNullValue())
                 .body("order.number", notNullValue());
@@ -118,16 +123,15 @@ public class OrderCreationTest extends BaseApiTest {
 
     @Test
     @DisplayName("Создание заказа только с начинкой")
+    @Description("Проверка создания заказа только с начинкой без булки")
     public void testCreateOrderWithFillingOnly() {
-        String requestBody = String.format(
-                "{\"ingredients\": [\"%s\"]}",
-                MEAT_ID
-        );
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("ingredients", new String[]{MEAT_ID});
 
         Response response = post("/orders", requestBody);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("success", equalTo(true))
                 .body("name", notNullValue())
                 .body("order.number", notNullValue());
